@@ -125,6 +125,7 @@ nav .navigation-menu > li > ul.subnav {
 
 
 nav > #logo {
+  margin-bottom: 20px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -134,6 +135,7 @@ nav > #logo {
 
 nav > #logo > span {
   font-size: 32px;
+  margin-bottom: 20px;
 }
 
 nav > #utility {
