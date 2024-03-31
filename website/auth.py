@@ -45,6 +45,8 @@ def sign_up():
             flash('Email already exists', category='error')
         elif len(username)<4:
             flash('The name must be at least 3 characters long')
+        elif valid_pass(password) is False:
+            flash("Password should include digits, be at least 8 ncharacters slong without spaces", category='error')
         else:
             new_user = User(email=email, name=username, password=generate_password_hash(password, method='pbkdf2:sha256', salt_length=8))
             db.session.add(new_user)
