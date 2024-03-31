@@ -81,17 +81,13 @@ def upload():
     if request.method == 'POST':
         file = request.files['file']
         if file:
-            print("File received:", file.filename)
-            folder_path = 'static/user_photos'
+            folder_path = 'website/static/user_photos'
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
-                print("Folder created:", folder_path)
             filename = file.filename
             file_path = os.path.join(folder_path, filename)
-            print("File path:", file_path)
             file.save(file_path)
-            print("File saved successfully")
-            current_user.image_file = '/static/user_photos/' + filename  # Update the user's image_file in the database
+            current_user.image_file = '/website/static/user_photos/' + filename  # Update the user's image_file in the database
             db.session.commit()
             return redirect(url_for('views.profilepage'))  # Redirect to user's profile page
     return render_template('profile.html')
