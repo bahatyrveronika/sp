@@ -11,11 +11,7 @@
     <div class="container">
         <h1>User Profile</h1>
         <img id="profile-image" src="{{ user.image_file }}" alt="User Photo">
-        <h2 class="row">Upload Profile Photo</h2>
-            <form action="/upload" method="POST" enctype="multipart/form-data" class="row">
-            <input type="file" name="file">
-            <input type="submit" value="Upload">
-        </form>
+        
         <div id="user-info">
             <p>{{ user.name }}</p>
             <p>Email: {{ user.email }}</p>
