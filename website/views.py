@@ -7,6 +7,7 @@ import sqlite3
 from sqlalchemy import desc
 from sqlalchemy.sql import func
 import random
+from sqlalchemy import func
 
 views = Blueprint('views', __name__)
 
@@ -22,7 +23,6 @@ def signpage():
 @views.route('/profilepage', methods = ['GET', 'POST'])
 @login_required
 def profilepage():
-
     top_restaurants = (
         db.session.query(Review.restaurant_name)
         .filter(Review.rating >= 3)  # Рейтинг не менше 3
@@ -32,7 +32,6 @@ def profilepage():
         .limit(3)  # Обмежити результат до трьох ресторанів
         .all()
     )
-    
     top_restaurants = [restaurant[0] for restaurant in top_restaurants]
     print(top_restaurants)
     restaurant_images = {}
@@ -44,7 +43,6 @@ def profilepage():
         image_path = result[0]
         restaurant_images[restaurant_name] = image_path
 
-
     random_reviews = (
         db.session.query(Review)
         .filter_by(user_id=current_user.id)  # Фільтруємо за ідентифікатором поточного користувача
@@ -52,19 +50,12 @@ def profilepage():
         .limit(3)  # Обмежуємо вибірку до трьох випадкових записів
         .all()
     )
-    # random_reviews = [restaurant[0] for restaurant in random_reviews]
     restaurant_reviews={}
     for random_review in random_reviews:
         cursor.execute("SELECT image_path FROM restaurants WHERE name = ?", (random_review.restaurant_name,))
         result = cursor.fetchone()  # Отримати перший рядок результату
         image_path = result[0]
         restaurant_reviews[random_review] = image_path
-
-
-
-
-
-
     return render_template('profile.html', user = current_user, restaurant_images=restaurant_images, restaurant_reviews=restaurant_reviews)
 
 
@@ -87,6 +78,7 @@ def notebutton():
 
 @views.route("/restpage/<restaurant_name>")
 def restpage(restaurant_name):
+    
     connection = sqlite3.connect('website/restaurants.db')
     cursor = connection.cursor()
     cursor.execute("SELECT name, address, rating, tel, time, price, image_path, link FROM restaurants WHERE name=?", (restaurant_name,))
@@ -102,8 +94,42 @@ def restpage(restaurant_name):
         # print("Image Path:", restaurant[6])
         # print("Link:", restaurant[7])
         views.rest = restaurant[0]
+        ratings = (
+            db.session.query(Review.rating, func.count())
+            .filter(Review.restaurant_name == restaurant_name)
+            .group_by(Review.rating)
+            .all()
+        )
+        stars={}
+        sum = 0
+        for tup in ratings:
+            sum+=tup[1]
+        for tup in ratings:
+            if tup[0]==1:
+                stars[1]=round((tup[1]/sum)*100, 1)
+            if tup[0]==2:
+                stars[2]=round((tup[1]/sum)*100, 1)
+            if tup[0]==3:
+                stars[3]=round((tup[1]/sum)*100, 1)
+            if tup[0]==4:
+                stars[4]=round((tup[1]/sum)*100, 1)
+            if tup[0]==5:
+                stars[5]=round((tup[1]/sum)*100, 1)
+        if int('1') not in stars:
+            stars[1]=0.0
+        if int('2') not in stars:
+            stars[2]=0.0
+        if int('3') not in stars:
+            stars[3]=0.0
+        if int('4') not in stars:
+            stars[4]=0.0
+        if int('5') not in stars:
+            stars[5]=0.0
+        print(stars)
+            
+        
         restaurant_reviews = Review.query.filter_by(restaurant_name=views.rest).all()
-        return render_template('rest.html', restaurant=restaurant, user = current_user, reviews=restaurant_reviews)
+        return render_template('rest.html', restaurant=restaurant, user = current_user, reviews=restaurant_reviews, stars=stars)
     else:
         return 'Restaurant not found', 404
 
@@ -111,11 +137,6 @@ def restpage(restaurant_name):
 @views.route("/submit_review", methods=['POST', 'GET'])
 # @login_required
 def submit_review():
-    # connection = sqlite3.connect('website/restaurants.db')
-    # cursor = connection.cursor()
-    # cursor.execute("SELECT name, address, rating, tel, time, price, image_path, link FROM restaurants WHERE name=?", (views.rest,))
-    # restaurant = cursor.fetchone()
-    # connection.close()
     rating = request.form['rating']
     feedback = request.form['feedback']
     if 'rating' in request.form and 'feedback' in request.form:
@@ -126,19 +147,7 @@ def submit_review():
         review = Review(feedback=feedback, rating=rating, restaurant_name=views.rest, user_id = current_user.id, user_name = current_user.name, image_file = current_user.image_file)
         db.session.add(review)
         db.session.commit()
-        # return redirect(url_for('views.restpage', restaurant_name=views.rest, user= current_user))
         return 'Success'
-        # return render_template('rest.html', user=current_user)
-        # return redirect(url_for('rest', user=current_user))
-        # flash('Your review successfully added!', category='success')
-        # return redirect(url_for('views.restpage', restaurant_name=views.rest))
     else:
         flash('Anonymous user', category='error')
         return 'Invalid request parameters', 400
-    
-# @views.route("/reviews")
-# def reviews():
-    # Отримання відгуків з бази даних
-    # print(views.rest)
-    # restaurant_reviews = Review.query.filter_by(restaurant_name=views.rest).all()
-    # return render_template('reviews.html', reviews=restaurant_reviews)
