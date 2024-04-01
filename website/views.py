@@ -135,7 +135,7 @@ def restpage(restaurant_name):
 
 
 @views.route("/submit_review", methods=['POST', 'GET'])
-# @login_required
+@login_required
 def submit_review():
     rating = request.form['rating']
     feedback = request.form['feedback']
