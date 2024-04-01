@@ -3,6 +3,7 @@ import googlemaps
 import sqlite3
 import random
 from flask import Blueprint, render_template, request, flash, jsonify, json
+from math import radians, sin, cos, sqrt, atan2
 
 functions = Blueprint('functions', __name__)
 
@@ -101,7 +102,20 @@ class Find:
 
     @staticmethod
     def track_distance(coordinates1, coordinates2):
-        return ((coordinates2[0] - coordinates1[0])**2 + (coordinates2[1] - coordinates1[1])**2)**0.5
+        lat1 = radians(coordinates1[0])
+        lon1 = radians(coordinates1[1])
+        lat2 = radians(coordinates2[0])
+        lon2 = radians(coordinates2[1])
+
+        R = 6371
+
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+
+        a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        distance = R * c
+        return distance*1000
 
     def find_distance(self):
         for i in Find.__restaurants:
